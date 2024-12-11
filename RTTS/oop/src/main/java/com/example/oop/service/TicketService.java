@@ -2,6 +2,8 @@ package com.example.oop.service;
 
 import com.example.oop.model.Ticket;
 import com.example.oop.repository.TicketRepo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,11 +13,12 @@ import java.util.Optional;
 @Service
 public class TicketService {
 
+    private static final Logger logger = LoggerFactory.getLogger(TicketService.class);
+
     private final TicketRepo repository;
 
-    // Constructor for Spring Dependency Injection
     @Autowired
-    public TicketService(int repository) {
+    public TicketService(TicketRepo repository) {
         this.repository = repository;
     }
 
@@ -32,23 +35,23 @@ public class TicketService {
 
     // Sell a ticket by ID
     public Ticket sellTicket(Long id) throws Exception {
-        // Find the ticket by ID
-        Optional<Ticket> optionalTicket = repository.findById(id);
+        Optional<Ticket> ticket = repository.findById(id);
 
-        if (optionalTicket.isEmpty()) {
-            throw new Exception("Ticket not found");
+        if (ticket.isPresent()) {
+            throw new Exception("Ticket with ID " + id + " not found");
         }
 
-        Ticket ticket = optionalTicket.get();
-
-        // Check if the ticket is already sold
-        if (ticket.isSold()) {
-            throw new Exception("Ticket already sold");
+        if (ticket.get().isSold()) {
+            throw new Exception("Ticket with ID " + id + " is already sold");
         }
 
-        // Mark the ticket as sold
-        ticket.setSold(true);
-        return repository.save(ticket);
+        ticket.get().setSold(true);
+        repository.save(ticket.get());
+
+        logger.info("Ticket with ID {} sold successfully", id);
+
+        return ticket.get();
+
+
     }
 }
-

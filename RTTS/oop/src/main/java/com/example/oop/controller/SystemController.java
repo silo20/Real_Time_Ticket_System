@@ -1,88 +1,63 @@
 package com.example.oop.controller;
 
 import com.example.oop.model.Configuration;
-import com.example.oop.service.Customer;
+import com.example.oop.model.Ticket;
 import com.example.oop.service.TicketService;
-import com.example.oop.service.Vendor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
+@RestController
+@RequestMapping("/api/tickets")  // Base URL for ticket-related actions
 public class SystemController {
-    private Configuration configuration; // System configuration
-    private TicketService ticketService;       // Shared ticket pool
-    private List<Thread> vendorThreads;  // List of vendor threads
-    private List<Thread> customerThreads; // List of customer threads
 
-    public SystemController() {
-        this.vendorThreads = new ArrayList<>();
-        this.customerThreads = new ArrayList<>();
+    @Autowired
+    private TicketService ticketService;
+
+    @Autowired
+    private Configuration configuration;
+
+    // Endpoint to create a new ticket
+    @PostMapping("/create")
+    public Ticket createTicket(@RequestParam String eventName) {
+        // Create a ticket with a specified event name
+        return ticketService.addTicket(eventName);
     }
 
-    // Initialize the system with a given configuration
-    public void initializeSystem(Configuration configuration) {
-        this.configuration = configuration;
-        this.ticketService = new TicketService(configuration.getMaxTicketCapacity());
-        System.out.println("System initialized with configuration:");
-        System.out.println("Total Tickets: " + configuration.getTotalTickets());
-        System.out.println("Max Ticket Capacity: " + configuration.getMaxTicketCapacity());
-        System.out.println("Ticket Release Rate: " + configuration.getTicketReleaseRate());
-        System.out.println("Customer Retrieval Rate: " + configuration.getCustomerRetrievalRate());
+    // Endpoint to retrieve all tickets
+    @GetMapping("/all")
+    public List<Ticket> getAllTickets() {
+        // Get all tickets from the database
+        return ticketService.getTickets();
     }
 
-    // Start the vendors (producers)
-    public void startVendors(int numberOfVendors) {
-        for (int i = 0; i < numberOfVendors; i++) {
-            Vendor vendor = new Vendor(ticketService, configuration.getTicketReleaseRate());
-            Thread vendorThread = new Thread(vendor, "Vendor-" + (i + 1));
-            vendorThreads.add(vendorThread);
-            vendorThread.start();
-        }
-        System.out.println(numberOfVendors + " vendors started.");
+    // Endpoint to sell a ticket (mark as sold)
+    @PostMapping("/sell/{id}")
+    public Ticket sellTicket(@PathVariable Long id) throws Exception {
+        // Sell the ticket by ID
+        return ticketService.sellTicket(id);
     }
 
-    // Start the customers (consumers)
-    public void startCustomers(int numberOfCustomers) {
-        for (int i = 0; i < numberOfCustomers; i++) {
-            Customer customer = new Customer(ticketService, configuration.getCustomerRetrievalRate());
-            Thread customerThread = new Thread(customer, "Customer-" + (i + 1));
-            customerThreads.add(customerThread);
-            customerThread.start();
-        }
-        System.out.println(numberOfCustomers + " customers started.");
+    // Endpoint to get configuration settings
+    @GetMapping("/configuration")
+    public Configuration getConfiguration() {
+        // Retrieve the configuration object
+        return configuration;
     }
 
-    // Stop all threads gracefully
-    public void stopSystem() {
-        // Interrupt all vendor threads
-        for (Thread vendorThread : vendorThreads) {
-            vendorThread.interrupt();
-        }
-        // Interrupt all customer threads
-        for (Thread customerThread : customerThreads) {
-            customerThread.interrupt();
-        }
-        System.out.println("System stopped gracefully.");
-    }
+    // Endpoint to update configuration settings
+    @PutMapping("/configuration")
+    public Configuration updateConfiguration(@RequestBody Configuration newConfig) {
+        // Update configuration values based on the input from the client
+        configuration.setTotalTickets(newConfig.getTotalTickets());
+        configuration.setTicketReleaseRate(newConfig.getTicketReleaseRate());
+        configuration.setCustomerRetrievalRate(newConfig.getCustomerRetrievalRate());
+        configuration.setMaxTicketCapacity(newConfig.getMaxTicketCapacity());
 
-    // Save the current configuration to a file
-    public void saveConfiguration(String fileName) {
-        if (configuration != null) {
-            configuration.saveToFile(fileName);
-            System.out.println("Configuration saved to file: " + fileName);
-        } else {
-            System.out.println("No configuration to save.");
-        }
-    }
+        // Optionally save the configuration back to the file or database
+        configuration.saveToFile("config.json");
 
-    // Load configuration from a file
-    public void loadConfiguration(String fileName) {
-        Configuration loadedConfig = Configuration.loadFromFile(fileName);
-        if (loadedConfig != null) {
-            initializeSystem(loadedConfig);
-            System.out.println("Configuration loaded from file: " + fileName);
-        } else {
-            System.out.println("Failed to load configuration.");
-        }
+        return configuration;
     }
 }

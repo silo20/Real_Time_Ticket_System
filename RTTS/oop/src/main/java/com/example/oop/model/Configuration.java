@@ -1,21 +1,15 @@
 package com.example.oop.model;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import org.springframework.stereotype.Component;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-
+@Component  // Add this annotation to make it a Spring Bean
 public class Configuration {
     private int totalTickets;
     private int ticketReleaseRate;
     private int customerRetrievalRate;
     private int maxTicketCapacity;
 
-    // Getters and Setters
+    // Getters and setters
     public int getTotalTickets() {
         return totalTickets;
     }
@@ -48,24 +42,8 @@ public class Configuration {
         this.maxTicketCapacity = maxTicketCapacity;
     }
 
-    // Save configuration to file using JSON
-    public void saveToFile(String fileName) {
-        try (Writer writer = new FileWriter(fileName)) {
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            gson.toJson(this, writer);
-        } catch (IOException e) {
-            System.out.println("Error saving configuration: " + e.getMessage());
-        }
-    }
-
-    // Load configuration from file
-    public static Configuration loadFromFile(String fileName) {
-        try (Reader reader = new FileReader(fileName)) {
-            Gson gson = new Gson();
-            return gson.fromJson(reader, Configuration.class);
-        } catch (IOException e) {
-            System.out.println("Error loading configuration: " + e.getMessage());
-            return null;
-        }
+    // Method to save configuration (optional)
+    public void saveToFile(String filePath) {
+        // Logic for saving configuration to a file (e.g., JSON, XML)
     }
 }

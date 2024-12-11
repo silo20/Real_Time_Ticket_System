@@ -9,7 +9,7 @@ public class Vendor implements Runnable {
     private final int releaseRate; // Tickets per second
 
     @Autowired
-    public Vendor(TicketService ticketService, int ticketReleaseRate) {
+    public Vendor(TicketService ticketService) {
         this.ticketService = ticketService;
         this.releaseRate = 2; // Example rate, adjust as needed
     }
@@ -30,4 +30,3 @@ public class Vendor implements Runnable {
         }
     }
 }
-

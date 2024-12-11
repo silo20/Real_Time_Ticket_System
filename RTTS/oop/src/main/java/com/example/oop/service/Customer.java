@@ -9,7 +9,7 @@ public class Customer implements Runnable {
     private final int retrievalRate; // Tickets per second
 
     @Autowired
-    public Customer(TicketService ticketService, int customerRetrievalRate) {
+    public Customer(TicketService ticketService) { //remove int customerRetrievalRate
         this.ticketService = ticketService;
         this.retrievalRate = 1; // Example rate, adjust as needed
     }
@@ -37,4 +37,3 @@ public class Customer implements Runnable {
         }
     }
 }
-
